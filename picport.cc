@@ -48,6 +48,13 @@ make sure your email passes my spam filtering.
 
 #include "picport.h"
 
+#include "pi_gpio.h"
+
+#define SCLK 24
+#define SDATA_OUT 23
+#define SDATA_IN 22
+#define VPP 25
+
 using namespace std;
 
 #ifndef O_NONBLOCK
@@ -70,7 +77,7 @@ static bool disable_interrupts = 1;
 void
 picport::set_clock_data (int rts, int dtr)
 {
-  if (hardware == k8048) {
+  /*if (hardware == k8048) {
     rts = !rts;
     dtr = !dtr;
   }
@@ -89,13 +96,16 @@ picport::set_clock_data (int rts, int dtr)
     tcsetattr (fd, TCSANOW, &saved);
     cerr << "Unable to set RTS/DTR on tty " << portname << ":" << strerror (e) << endl;
     exit (EX_IOERR);
-  }
+  }*/
+    
+    _pi_gpio_write(SCLK, rts);
+    _pi_gpio_write(SDATA_OUT, dtr);
 }
 
 void
 picport::set_vpp (int vpp)
 {
-  if (hardware == k8048)
+  /*if (hardware == k8048)
     vpp = !vpp;
   if (0 > ioctl (fd, vpp ? TIOCSBRK : TIOCCBRK, 0)) {
     int e = errno;
@@ -105,7 +115,9 @@ picport::set_vpp (int vpp)
     cerr << "Unable to " << (vpp ? "start" : "stop") << " break on tty "
         << portname << ":" << strerror (e) << endl;
     exit (EX_IOERR);
-  }
+  }*/
+    
+    _pi_gpio_write(VPP, vpp);
 }
 
 picport::picport (const char *tty, bool nordtsc, bool slow, bool reboot,
@@ -117,7 +129,7 @@ picport::picport (const char *tty, bool nordtsc, bool slow, bool reboot,
   portname = new char [strlen (tty) + 1];
   strcpy (portname, tty);
 
-  if (0 > (fd = open (tty, O_RDWR|O_NOCTTY|O_NONBLOCK))) {
+  /*if (0 > (fd = open (tty, O_RDWR|O_NOCTTY|O_NONBLOCK))) {
     int e = errno;
     cerr << "Unable to open tty " << tty << ":" << strerror (e) << endl;
     exit (EX_IOERR);
@@ -128,10 +140,17 @@ picport::picport (const char *tty, bool nordtsc, bool slow, bool reboot,
   termstate.c_oflag = 0;
   termstate.c_cflag = B9600 | CS8 | CREAD | CLOCAL;
   termstate.c_lflag = 0;
-  tcsetattr (fd, TCSANOW, &termstate);
-
+  tcsetattr (fd, TCSANOW, &termstate);*/
+  
+  if(!pi_gpio_map()) {
+    int e = errno;
+    cerr << "Unable to map gpio: " << strerror (e) << endl;
+    exit (EX_IOERR);
+  }
+  
   // Initialize lines for programming
 
+  /*
   // RTS/DTR low, sleep and then TxD high (program voltage)
 
   ioctl (fd, TIOCCBRK, 0);
@@ -148,7 +167,13 @@ picport::picport (const char *tty, bool nordtsc, bool slow, bool reboot,
     tcsetattr (fd, TCSANOW, &saved);
     cerr << tty << ":CTS is high, probably we are not connected to a programmer but a modem or terminal." << endl;
     exit (EX_IOERR);
-  }
+  }*/
+  
+  _pi_gpio_fsel(SCLK, PIN_OUTPUT);
+  _pi_gpio_fsel(SDATA_OUT, PIN_OUTPUT);
+  _pi_gpio_fsel(VPP, PIN_OUTPUT);
+  _pi_gpio_fsel(SDATA_IN, PIN_INPUT);
+  
 
   struct sched_param scp;
   scp.sched_priority = sched_get_priority_min (SCHED_FIFO);
@@ -171,7 +196,7 @@ picport::picport (const char *tty, bool nordtsc, bool slow, bool reboot,
   CPU_ZERO(&cur_mask);
   CPU_ZERO(&new_mask);
   if (sched_getaffinity(0, sizeof (cur_mask), &cur_mask) < 0) {
-    tcsetattr (fd, TCSANOW, &saved);
+    //tcsetattr (fd, TCSANOW, &saved);
     cerr << "Getting affinity functions do not work." << endl;
     exit (EX_IOERR);
   }
@@ -281,7 +306,7 @@ picport::picport (const char *tty, bool nordtsc, bool slow, bool reboot,
   usleep (25000);
 
   // Detect delays that are needed for cable lenght
-  bool successful_echo = false;
+  /*bool successful_echo = false;
   for (int i = 1; i <= 100; ++i) {
     int data_out = i & 1;
     // toggle data, keep clock off / power on
@@ -314,7 +339,7 @@ picport::picport (const char *tty, bool nordtsc, bool slow, bool reboot,
     tcsetattr (fd, TCSANOW, &saved);
     cerr << "Cable too long." << endl;
     exit (EX_IOERR);
-  }
+  }*/
 
   cable_delay += 100; // Another 100 ns added just for safety
   if (slow && cable_delay < 10000)
@@ -333,8 +358,15 @@ picport::~picport ()
 {
   set_vpp (0);
   usleep (1);
-  tcsetattr (fd, TCSANOW, &saved);
-  close (fd);
+  
+  _pi_gpio_fsel(SCLK, PIN_INPUT);
+  _pi_gpio_fsel(SDATA_OUT, PIN_INPUT);
+  _pi_gpio_fsel(VPP, PIN_INPUT);
+  _pi_gpio_fsel(SDATA_IN, PIN_INPUT);
+  pi_gpio_unmap();
+  
+  //tcsetattr (fd, TCSANOW, &saved);
+  //close (fd);
   delete [] portname;
 }
 
@@ -403,13 +435,13 @@ void picport::p_out (int b)
 {
   struct timeval tv1, tv2;
   gettimeofday (&tv1, 0);
-  if (tsc_1000ns > 1 && disable_interrupts)
-    asm volatile("pushf; cli");
+  //if (tsc_1000ns > 1 && disable_interrupts)
+  //  asm volatile("pushf; cli");
   set_clock_data (1, b); // set data, clock up
   delay (cable_delay);
   set_clock_data (0, b); // clock down
-  if (tsc_1000ns > 1 && disable_interrupts)
-    asm volatile("popf");
+  //if (tsc_1000ns > 1 && disable_interrupts)
+  //  asm volatile("popf");
   gettimeofday (&tv2, 0);
 
   // We may have spent a long time in an interrupt or in another task
@@ -428,13 +460,16 @@ int picport::p_in ()
 {
   struct timeval tv1, tv2;
   gettimeofday (&tv1, 0);
-  if (tsc_1000ns > 1 && disable_interrupts)
-    asm volatile("pushf; cli");
-  set_clock_data (1, 1); // clock up
+  //if (tsc_1000ns > 1 && disable_interrupts)
+  //  asm volatile("pushf; cli");
+  //set_clock_data (1, 1); // clock up
+  set_clock_data(1, 0);
   delay (cable_delay);
-  set_clock_data (0, 1); // set data up, clock down
-  if (tsc_1000ns > 1 && disable_interrupts)
-    asm volatile("popf");
+  int lev = _pi_gpio_lev(SDATA_IN);
+  //set_clock_data (0, 1); // set data up, clock down
+  set_clock_data(0, 0);
+  //if (tsc_1000ns > 1 && disable_interrupts)
+  //  asm volatile("popf");
   gettimeofday (&tv2, 0);
 
   // We may have spent a long time in an interrupt or in another task
@@ -448,13 +483,14 @@ int picport::p_in ()
     matching_delay = cable_delay;
   delay (matching_delay);
 
-  int i;
+  /*int i;
 
   ioctl (fd, TIOCMGET, &i);
   i = 0 != (i & TIOCM_CTS);
   if (hardware == k8048)
     return !i;
-  return i;
+  return i;*/
+  return lev != 0;
 }
 
 int picport::command18 (enum commands18 comm, int data)

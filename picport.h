@@ -44,15 +44,15 @@ public:
   };
 
 private:
-  int fd;
-  struct termios saved, termstate;
+  //int fd;
+  //struct termios saved, termstate;
   unsigned long addr;
   int debug_on;
   enum hardware_types hardware;
   char *portname;
   int W[16];
 
-  int modembits;
+  //int modembits;
   void set_clock_data (int rts, int dtr);
   void set_vpp (int vpp);
 
