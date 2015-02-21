@@ -153,7 +153,7 @@ volatile gpio_registers_t *gpio_registers;
     gpio_registers->gpclr[(pin) >> 5] = 1 << ((pin) & 0x1F)
 
 #define _pi_gpio_lev(pin) \
-    gpio_registers->gplev[(pin) >> 5] & 1 << ((pin) & 0x1F)
+    (gpio_registers->gplev[(pin) >> 5]) & (1 << ((pin) & 0x1F))
 
 #define _pi_gpio_write(pin, val) \
     (val) ? ( _pi_gpio_set(pin) ) : ( _pi_gpio_clr(pin) )
