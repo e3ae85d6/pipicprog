@@ -26,3 +26,11 @@
 *.exe
 *.out
 *.app
+
+# NetBeans Stuff
+nbproject/
+build/
+dist/
+Makefile
+.dep.inc
+
