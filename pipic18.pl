@@ -3,30 +3,26 @@
 use strict;
 use warnings;
 use autodie qw(:all);
+use Class::Struct;
 
-=begin
-open(my $hex, "<", "b452-1.hex");
+struct(HexRecord => {
+	addr => '$',
+	type => '$',
+	data => '$',
+});
 
-while(<$hex>) {
-	#my $bytes = pack( "x[C]H*", $_);
-	#print unpack("H*", $bytes);
-	print("$_[0]\n");
-
-	#print unpack( "%8C*", $binrec ) . "\n";
-	#my ( $addr, $type, $data ) = unpack( "x n C X4 C x3 /a", $binrec );
-
-	#my $data_bytes = unpack("H*", $data);
-
-	#print("$addr $type $data_bytes\n");
+sub readHexFile() {
+	open(my $hexFile, "<", "test.hex");
+	while(<$hexFile>) {
+		my ($colon, $hex_data) = unpack("AA*");
+		my $bytes = pack("H*", $hex_data);
+		my $check_sum = unpack("%8W*", $bytes);
+		my( $addr, $type, $data ) = unpack( "x n C X4 C x3 /a", $bytes );
+		my $rec = HexRecord->new(addr=>$addr, type=>$type, data=>$data);
+		my $data_str = unpack("H*", $rec->data);
+		print($rec->addr . " " . $rec->type . " " . $data_str . "\n");
+	}
+	close($hexFile);
 }
 
-close($hex);/
-
-=end
-
-=cut
-
-$_ = ":1000600000F0052E22EF00F0120037EF00F00150F3";
-
-for
-
+readHexFile();
