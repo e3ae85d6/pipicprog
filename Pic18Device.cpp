@@ -47,6 +47,17 @@ uint16_t Pic18Device::read_device_id() {
     return dev_id;
 }
 
+void Pic18Device::read(uint32_t startAddr, uint8_t *dstBuf, size_t nBytes) {
+    load_tblptr(startAddr);
+    
+    Pic18Cmd read_inc_cmd = { TABLE_READ_POST_INCREMENT, 0 };
+    
+    for(size_t i = 0; i < nBytes; i++) {
+        exec(read_inc_cmd);
+        dstBuf[i] = read_inc_cmd.data1;
+    }
+}
+
 void Pic18Device::exec(Pic18Cmd *cmds, size_t num) {
     for (size_t i = 0; i < num; i++) {
         Pic18Cmd *cmd = cmds + i;

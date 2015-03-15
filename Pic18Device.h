@@ -10,6 +10,7 @@
 
 #include "Pic18Phy.h"
 #include <list>
+#include <vector>
 
 using namespace std;
 
@@ -41,6 +42,9 @@ public:
     void exec(Pic18Cmd &cmd);
     void exec(Pic18CmdList &cmdList);
     void exec(Pic18Cmd *cmds, size_t num = 1);
+    
+    void read(uint32_t startAddr, uint8_t *dstBuf, size_t nBytes);
+    
 
 public:
     void load_tblptr(uint32_t addr);
