@@ -22,8 +22,8 @@ void HexFile::load(istream &inputStream) {
 }
 
 void HexFile::save(ostream &outputStream) {
-    for (list<HexFileRecord>::iterator it = hexFileRecords.begin(); it != hexFileRecords.end(); it++) {
-        outputStream << (*it).toString() << endl;
+    for (HexFileRecord &rec : hexFileRecords) {
+        outputStream << rec.toString() << endl;
     }
 }
 

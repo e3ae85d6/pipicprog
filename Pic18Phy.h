@@ -8,7 +8,6 @@
 #ifndef PIC18PHY_H
 #define	PIC18PHY_H
 
-#include <stddef.h>
 #include <stdint.h>
 
 class Pic18Phy {

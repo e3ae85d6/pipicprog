@@ -11,6 +11,13 @@
 
 #define CMD_DELAY 40
 
+#define MOVLW 0x0E
+#define MOVWF 0x6E
+
+#define TBLPTRU 0xF8
+#define TBLPTRH 0xF7
+#define TBLPTRL 0xF6
+
 Pic18Device::Pic18Device(const Pic18Phy &pic18Phy) : phy(pic18Phy) {
 }
 
@@ -18,12 +25,16 @@ Pic18Device::~Pic18Device() {
 }
 
 void Pic18Device::load_tblptr(uint32_t addr) {
+    uint8_t tblptru = ((addr >> 16) & 0x3F),
+            tblptrh = ((addr >> 8) & 0xFF),
+            tblptrl = (addr & 0xFF);
+    
     Pic18Cmd load_tblptr_addr_seq[] = {
-        { CORE_INSTR, (0x0E << 8) | ((addr) >> 16 & 0x3F) },
+        { CORE_INSTR, (uint16_t)((0x0E << 8) | tblptru) },
         { CORE_INSTR, 0x6EF8 },
-        { CORE_INSTR, (0x0E << 8) | ((addr) >> 8 & 0xFF) },
+        { CORE_INSTR, (uint16_t)((0x0E << 8) | tblptrh) },
         { CORE_INSTR, 0x6EF7 },
-        { CORE_INSTR, (0x0E << 8) | ((addr) & 0xFF) },
+        { CORE_INSTR, (uint16_t)((0x0E << 8) | tblptrl) },
         { CORE_INSTR, 0x6EF6 },
     };
     

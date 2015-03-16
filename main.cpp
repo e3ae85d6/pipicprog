@@ -25,7 +25,7 @@ int main(int argc, const char * argv[]) {
     //std::string fileName(argv[1]);
     std::string fileName("b452-1.hex");
     
-    ifstream inputData(fileName.c_str());
+    ifstream inputData(fileName);
 
     if (!inputData.is_open()) {
         perror("open");

@@ -70,8 +70,8 @@ bool HexFileRecord::fromString(const string &hexLine) {
     }
 
     uint8_t checksum = 0;
-    for (vector<uint8_t>::iterator it = hexBytes.begin(); it != hexBytes.end(); it++)
-        checksum += *it;
+    for (uint8_t hexByte : hexBytes)
+        checksum += hexByte;
 
     if (checksum) {
         clog << "Invalid line checksum: " << hexLine << endl;
@@ -118,8 +118,7 @@ const string HexFileRecord::toString() {
     checksum += recordType;
 
     // data bytes
-    for (vector<uint8_t>::iterator it = data.begin(); it != data.end(); it++) {
-        uint8_t dataByte = *it;
+    for (uint8_t dataByte : data) {
         appendHexByte(str, dataByte);
         checksum += dataByte;
     }
