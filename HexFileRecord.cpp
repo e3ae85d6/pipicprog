@@ -46,13 +46,13 @@ bool HexFileRecord::fromString(const string &hexLine) {
     vector<uint8_t> hexBytes;
     hexBytes.reserve(MAX_HEX_LINE_BYTES);
 
-    if (hexLine[0] != ':') {
-        clog << "Invalid line start code: " << hexLine << endl;
+    if (hexLine.length() < MIN_HEX_LINE_CHARS) {
+        cerr << "Line is too short: " << hexLine << endl;
         return false;
     }
 
-    if (hexLine.length() < MIN_HEX_LINE_CHARS) {
-        clog << "Line is too short: " << hexLine << endl;
+    if (hexLine[0] != ':') {
+        cerr << "Invalid line start code: " << hexLine << endl;
         return false;
     }
 
@@ -61,7 +61,7 @@ bool HexFileRecord::fromString(const string &hexLine) {
                 lowNibble = hexToNibble(hexLine[i++]);
 
         if (highNibble > MAX_NIBBLE || lowNibble > MAX_NIBBLE) {
-            clog << "Invalid line char: " << hexLine << endl;
+            cerr << "Invalid line char: " << hexLine << endl;
             continue;
         }
 
@@ -74,13 +74,13 @@ bool HexFileRecord::fromString(const string &hexLine) {
         checksum += hexByte;
 
     if (checksum) {
-        clog << "Invalid line checksum: " << hexLine << endl;
+        cerr << "Invalid line checksum: " << hexLine << endl;
         return false;
     }
 
     uint8_t dataLen = hexBytes[0];
     if (hexBytes.size() - dataLen != 5) { // 1(dataLen) + 2(addr) + 1(type) + 1(checksum)
-        clog << "Invalid line format: " << hexLine << endl;
+        cerr << "Invalid line format: " << hexLine << endl;
         return false;
     }
 

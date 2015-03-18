@@ -61,6 +61,10 @@ int main(int argc, const char * argv[]) {
     
     uint16_t deviceId = 0x0420;
     Pic18DeviceInfo pic18DeviceInfo = Pic18DeviceInfo::findDeviceInfo(deviceId);
+
+    uint16_t deviceId2 = 0x0421;
+    Pic18DeviceInfo pic18DeviceInfo2 = Pic18DeviceInfo::findDeviceInfo(deviceId);
+
     if(pic18DeviceInfo.deviceId == 0) {
         cerr << "Error: unknown device (0x" << hex << deviceId << ")" << endl;
         return (EXIT_FAILURE);

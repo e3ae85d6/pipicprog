@@ -20,7 +20,18 @@ Pic18DeviceInfo::Pic18DeviceInfo(
 { }
 
 Pic18DeviceInfo Pic18DeviceInfo::findDeviceInfo(uint16_t deviceId) {
-    Pic18DeviceInfo devices[] = {
+    vector<Pic18DeviceInfo> KnownPic18DeviceInfos = {{
+        Pic18DeviceInfo(0x0420, 32 * 1024, string("PIC18F452")),
+        Pic18DeviceInfo(0x0421, 32 * 1024, string("PIC18F452"))
+    }};
+      
+    for(Pic18DeviceInfo pic18DeviceInfo : KnownPic18DeviceInfos) {
+        if(pic18DeviceInfo.deviceId == deviceId) {
+            return pic18DeviceInfo;
+        }
+    }
+    
+    /*Pic18DeviceInfo devices[] = {
         Pic18DeviceInfo(0x0420, 32 * 1024, string("PIC18F452")),
     };
             
@@ -28,7 +39,7 @@ Pic18DeviceInfo Pic18DeviceInfo::findDeviceInfo(uint16_t deviceId) {
         if(devices[i].deviceId == deviceId) {
             return devices[i];
         }
-    }
+    }*/
     
     return Pic18DeviceInfo(0, 0, string("Unknown"));
 }

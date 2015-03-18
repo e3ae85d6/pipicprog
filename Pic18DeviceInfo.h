@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -19,7 +20,7 @@ private:
         uint16_t deviceId,
         size_t memorySize,
         string deviceName);
-
+    
 public:
     static Pic18DeviceInfo findDeviceInfo(uint16_t deviceId);
     
