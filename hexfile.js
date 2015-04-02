@@ -1,55 +1,56 @@
 
-/*process.argv.forEach(function(val, index, array) {
-		  console.log(index + ': ' + val);
-});*/
-
-var fs = require('fs');
+var readFileByLine = require("./readFileByLine");
 
 var hexFilename = process.argv[2];
 if(hexFilename === undefined) {
-		console.log("Error: missing file name");
-		process.exit(1);
+	console.log("Error: missing file name");
+	process.exit(1);
 }
 
 console.log("loading hex file: " + hexFilename);
 
-var readFileByLine = function(filename, options, callback) {
-		fs.open(filename, 'r', function(err, fd) {
-				if(err) {
-						callback(err, null);
-						return;
-				}
+function hexfileRecordFromString(str) {
 
-				fs.close(fd, function(err) {
-						if(err)
-							console.log("warning: can't close file: " + err);
-				});
-		});
+	if(str[0] != ':')
+		return null;
+
+	var binRecord = new Buffer(str.substring(1), "hex");
+
+	var byteCount = binRecord[0];
+
+	var addrHi = binRecord[1];
+	var addrLo = binRecord[2];
+	var addr = addrHi << 8 | addrLo;
+
+	var recordType = binRecord[3];
+	
+	var data = binRecord.slice(4, -1);
+	if(data.length != byteCount)
+		return null;
+
+	var checksum = binRecord[binRecord.length - 1];
+	checksum += (byteCount + addrHi + addrLo + recordType);
+	for (var i = 0; i < data.length; i++)
+		checksum += data[i];
+
+	checksum &= 0xFF;
+
+	console.log(
+			"byteCount: " + byteCount.toString(16) +
+			"; addr: " + addr.toString(16) +
+			"; recordType: " + recordType.toString(16) +
+			"; data: " + data.toString("hex") +
+			"; checksum: " + checksum.toString(16));
+
+	return null;
 }
 
-/*fs.readFile(hexFileName, { encoding: "utf-8" }, function(err, data) {
-		if(err) throw err;
-		var hexFileStrings = data.split(/\r?\n/);
-
-		hexFileStrings.forEach(function(val, index, array) {
-		});
-
-		//console.log(hexFileStrings);
-});*/
-
 readFileByLine(hexFilename, { encoding : "utf-8" }, function(err, line) {
+	if(err) throw err;
+
+	if(line)
+		hexfileRecordFromString(line);
+	else
+		console.log("done!!!");
 });
-
-var val = ":100030000250036E640E046E0A0E1FEF00F0056E90";
-var fields = val.match(/^:([0-9A-Z]{2})([0-9A-Z]{4})([0-9A-Z]{2})([0-9A-Z]*)([0-9A-Z]{2})$/i);
-
-//console.log(fields);
-console.log("Byte count: " + fields[1]);
-console.log("Address: " + fields[2]);
-console.log("Record type: " + fields[3]);
-console.log("Data: " + fields[4]);
-console.log("Checksum: " + fields[5]);
-
-var smalloc = require("smalloc");
-console.log(smalloc.kMaxLength);
 
