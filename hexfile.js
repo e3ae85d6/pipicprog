@@ -11,8 +11,10 @@ console.log("loading hex file: " + hexFilename);
 
 function hexfileRecordFromString(str) {
 
-	if(str[0] != ':')
+	if(str[0] != ':') {
+		console.log("invalid start code: " + str);
 		return null;
+	}
 
 	var binRecord = new Buffer(str.substring(1), "hex");
 
@@ -25,8 +27,10 @@ function hexfileRecordFromString(str) {
 	var recordType = binRecord[3];
 	
 	var data = binRecord.slice(4, -1);
-	if(data.length != byteCount)
+	if(data.length != byteCount) {
+		console.log("length of data != byte count: " + str);
 		return null;
+	}
 
 	var checksum = binRecord[binRecord.length - 1];
 	checksum += (byteCount + addrHi + addrLo + recordType);
@@ -34,6 +38,11 @@ function hexfileRecordFromString(str) {
 		checksum += data[i];
 
 	checksum &= 0xFF;
+
+	if(checksum != 0) {
+		console.log("wrong checksum: " + str);
+		return null;
+	}
 
 	console.log(
 			"byteCount: " + byteCount.toString(16) +
