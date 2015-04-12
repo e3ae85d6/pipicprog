@@ -3,6 +3,7 @@ var readFileByLine = require("./readFileByLine");
 
 function hexfileRecordFromString(str) {
 
+	str = str.trim();
 	if(str[0] != ':')
 		return null;
 
