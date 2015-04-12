@@ -34,22 +34,28 @@ function hexfileRecordFromString(str) {
 		checksum += data[i];
 
 	checksum &= 0xFF;
+	if(checksum != 0)
+		return null;
 
-	console.log(
-			"byteCount: " + byteCount.toString(16) +
-			"; addr: " + addr.toString(16) +
-			"; recordType: " + recordType.toString(16) +
-			"; data: " + data.toString("hex") +
-			"; checksum: " + checksum.toString(16));
-
-	return null;
+	return {
+		"recordType" : recordType,
+		"addr" : addr,
+		"data" : data,
+	};
 }
 
-readFileByLine(hexFilename, { encoding : "utf-8" }, function(err, line) {
+readFileByLine(hexFilename, function(err, line) {
 	if(err) throw err;
 
-	if(line)
-		hexfileRecordFromString(line);
+	if(line) {
+		var hexFileRecord = hexfileRecordFromString(line);
+		if(hexFileRecord != null) {
+			console.log(
+				"recordType: " + hexFileRecord.recordType +
+				"; addr: " + hexFileRecord.addr +
+				"; data: " + hexFileRecord.data.toString("hex"));
+		}
+	}
 	else
 		console.log("done!!!");
 });
