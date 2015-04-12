@@ -1,7 +1,7 @@
 
 var fs = require('fs');
 
-module.exports = function(filename, options, callback) {
+module.exports = function(filename, callback) {
 	fs.open(filename, 'r', function(err, fd) {
 		if(err) {
 			callback(err, null);
@@ -33,15 +33,16 @@ module.exports = function(filename, options, callback) {
 				callback(null, null);
 			}
 			else {
-				var str = buffer.toString(options.encoding, 0, bytesRead);
+				var str = buffer.toString("ascii", 0, bytesRead);
 				for(var i = 0; i < str.length; i++) {
 				   	var ch = str[i];
 
-					if(ch == '\r' || ch == '\n') {
-						if(line.length > 0) {
-							callback(null, line);
-							line = "";
-						}
+					if(ch == '\r') {
+						continue;
+					}
+					else if(ch == '\n') {
+						callback(null, line);
+						line = "";
 					}
 					else {
 						line += ch;
